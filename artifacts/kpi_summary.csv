@@ -1,0 +1,6 @@
+KPI,Name,Value,Unit
+KPI1 Time,Median order lead time,322.0682523148148,days
+KPI2 Quality,Order fill rate,93.31054400313391,%
+KPI3 Quality,Stockout line rate,7.1783929873224155,%
+KPI4 Productivity,Units picked per hour,3709.4127906976746,units/h
+KPI5 Productivity,Pick hits per hour,806.2383720930233,picks/h

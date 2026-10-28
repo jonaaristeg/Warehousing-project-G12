@@ -1,0 +1,5 @@
+Design,Moved SKUs go to,Lines in the 10 busiest aisles (%),"Lines per day, busiest aisle"
+D1 full slotting,nearest,34.02425555186206,231.5909090909091
+D1 full slotting,random,34.02425555186206,231.5909090909091
+D2 targeted slotting,nearest,34.593649806448845,232.04545454545453
+D2 targeted slotting,random,34.34058569329916,231.72727272727272

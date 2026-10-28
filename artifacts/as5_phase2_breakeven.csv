@@ -1,0 +1,5 @@
+Relocation case,Hours saved per 22 days (h),SKU moves (count),Periods of 22 days (count),Break-even time per SKU move (min)
+best,24.4,4465,1,0.33
+best,24.4,4465,12,3.94
+worst,15.7,4465,1,0.21
+worst,15.7,4465,12,2.53

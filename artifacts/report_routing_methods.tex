@@ -1,0 +1,15 @@
+\begin{table}[t]
+\caption{Walking distance of the five routing methods over 2,800 batches. Method E is the shortest; labour time is shown for A, B and E.}
+\label{tab:routing}
+\fitwidth{\columnwidth}{\begin{tabular}{p{2.5cm}rrrrr}
+\toprule
+Method & Distance (km) & \shortstack{Change vs B\\(\%)} & \shortstack{Batches\\shorter than\\B (\%)} & \shortstack{Labour time\\(h)} & \shortstack{Pickers\\(count)} \\
+\midrule
+A. Orders one by one (data order) & 2,699 & +165.5 & 0.0 & 1,268 & 8.2 \\
+B. One pass sorted by location code & 1,017 & +0.0 & 0.0 & 800 & 5.2 \\
+C. Nearest neighbour & 1,046 & +2.8 & 21.6 & -- & -- \\
+D. Nearest neighbour + 2-opt & 938 & -7.8 & 50.6 & -- & -- \\
+E. B + 2-opt & 927 & -8.8 & 51.9 & 776 & 5.0 \\
+\bottomrule
+\end{tabular}}
+\end{table}

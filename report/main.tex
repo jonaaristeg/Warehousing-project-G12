@@ -1,0 +1,243 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage{url}
+\usepackage{amsmath}
+\sisetup{group-separator={,},group-minimum-digits=4}
+
+
+% Scale a table down only if it is wider than #1.
+\newsavebox{\tabbox}
+\newcommand{\fitwidth}[2]{\setlength{\tabcolsep}{3pt}\sbox{\tabbox}{\footnotesize #2}\ifdim\wd\tabbox>#1 \resizebox{#1}{!}{\usebox{\tabbox}}\else\usebox{\tabbox}\fi}
+
+% Evidence from the notebook (artifacts/). If a file is missing, the report still compiles
+% and shows a box: run the notebook first (see README.md). Works from the root or from report/.
+\newcommand{\inputart}[1]{%
+  \IfFileExists{artifacts/#1.tex}{\input{artifacts/#1.tex}}{%
+  \IfFileExists{../artifacts/#1.tex}{\input{../artifacts/#1.tex}}{%
+  \par\noindent\fbox{\footnotesize Missing artifacts/#1.tex: run the notebook}\par}}}
+\newcommand{\figartw}[1]{%
+  \IfFileExists{artifacts/#1.pdf}{\includegraphics[width=\textwidth]{artifacts/#1.pdf}}{%
+  \IfFileExists{../artifacts/#1.pdf}{\includegraphics[width=\textwidth]{../artifacts/#1.pdf}}{%
+  \fbox{\footnotesize Missing artifacts/#1.pdf: run the notebook}}}}
+\newcommand{\figartx}[2]{%
+  \IfFileExists{artifacts/#1.pdf}{\includegraphics[width=#2]{artifacts/#1.pdf}}{%
+  \IfFileExists{../artifacts/#1.pdf}{\includegraphics[width=#2]{../artifacts/#1.pdf}}{%
+  \fbox{\footnotesize Missing artifacts/#1.pdf}}}}
+\newcommand{\figart}[1]{%
+  \IfFileExists{artifacts/#1.pdf}{\includegraphics[width=\columnwidth]{artifacts/#1.pdf}}{%
+  \IfFileExists{../artifacts/#1.pdf}{\includegraphics[width=\columnwidth]{../artifacts/#1.pdf}}{%
+  \fbox{\footnotesize Missing artifacts/#1.pdf: run the notebook}}}}
+
+\begin{document}
+\pagestyle{plain}
+\raggedbottom\setlength{\textfloatsep}{6pt}\setlength{\floatsep}{6pt}
+
+\title{Storage, Layout and Order Picking Improvements for the S.~P.~Richards Distribution Center}
+
+\author{\IEEEauthorblockN{Mikel Barrena and June Ona (Group 12)}
+\IEEEauthorblockA{Course Warehousing, University of Twente\\
+Enschede, The Netherlands}}
+
+\maketitle
+\thispagestyle{plain}
+
+\begin{abstract}
+We study how three decisions (storage assignment, layout and order picking) change the labour time of a Philadelphia distribution center. We profile the current operation, design a new storage assignment, a targeted layout change and a better picking route, and compare all eight combinations of the three decisions (S0 to S7) on one common time model. The current operation needs 873.9 labour hours in 22 picking days. Changing all three decisions needs 783 to 792 hours (a saving of 9.4\% to 10.4\%) and about 5.1 pickers instead of 5.7. Layout and picking together give most of the saving (7.6\%), but the new storage alone makes the operation 2.3\% to 3.2\% worse. The decisions interact: the combined effect is about 70 hours larger than the sum of the isolated effects. The best scenario stays best in all 18 sensitivity cases. Its main cost is congestion: the busiest aisle receives about twice as many lines per day. We recommend the full combination, introduced in two phases.
+\end{abstract}
+
+\begin{IEEEkeywords}
+warehousing, storage assignment, layout design, order picking, scenario comparison
+\end{IEEEkeywords}
+
+\section{Introduction}
+The warehouse of S.~P.~Richards Company supplies office products from a single building in Philadelphia~\cite{spr}. Management wants to know whether changes in storage, layout and order picking reduce the work needed to ship the same orders, and how much each change is worth alone and in combination. We assess every option with three criteria: labour time (hours), the number of pickers this implies, and feasibility (space, capacity and congestion).
+
+The study has five steps. We first use the activity profile to identify three operational problems (Section~\ref{sec:profile}). We then design one change for each decision: a new assignment of SKUs to storage locations (Section~\ref{sec:storage}), extra active locations for the fastest SKUs (Section~\ref{sec:layout}) and a shorter picking route (Section~\ref{sec:picking}). Finally, we compare all combinations on one basis, including their interactions, and recommend what to do (Section~\ref{sec:eval}). Each section states its own checks, so a reader can follow how every number was obtained.
+
+\section{Data and common evaluation basis}\label{sec:data}
+\textbf{Data.} We use the ten files of the SPR project~\cite{spr}: active and reserve locations, min/max levels, SKU dimensions, item master, the warehouse map, a year of sales (2004; 883,910 orders) and the picking records of 25 February to 25 March 2005 (138,674 pick lines, 126,033 cartons). Because sales and picking cover different years, order-level KPIs use the sales file and all picking measures use the 2005 records. After removing discontinued and unstocked items, 22,652 of 35,637 items remain. One sales row with an unreadable date was dropped, and 21,051 bulk sales rows (more than 60 units) were excluded from the ABC ranking because a few wholesale orders would dominate it.
+
+\textbf{Scope.} All design work covers zones B and C, which hold 14,575 active locations, one SKU per location. They contain 93,257 of the 138,674 pick lines (67\%), grouped into 2,800 batches (one batch is one picking tour) over 22 picking days. Distances are measured on the map grid: each aisle is one point, one grid square is 1.07~m, and the packing area is the start and end of every tour.
+
+\textbf{Time model.} The labour time of a scenario is
+\begin{equation}
+T = \frac{d}{v} + n_{\text{lines}}\, t_{\text{pick}} + n_{\text{refill}}\, t_{\text{refill}},
+\end{equation}
+where $d$ is the walking distance of all batch routes, $v$ the walking speed, $n_{\text{lines}}=93{,}257$ the pick lines (the picking term is 518.1~h in all scenarios) and $n_{\text{refill}}$ the number of refill trips from reserve. The number of pickers is $T$ divided by the productive hours per picker in the 22 picking days. The assumptions in Table~\ref{tab:assumptions} are the same in every comparison; the walking speed, the two times and the data order of today's picking are tested in the sensitivity analysis.
+
+\textbf{Reproducibility.} One notebook reads the original files from \texttt{data/raw/} and saves every table and figure to \texttt{artifacts/}~\cite{turingway}. The only random step is the worst-case relocation of displaced SKUs (seeds 0 to 4). Ties in rankings are broken by SKU code, so the results are the same on every computer.
+
+\inputart{report_assumptions}
+
+\section{Warehouse activity profiling}\label{sec:profile}
+We use the activity profiles and KPIs of the first assignment to answer one question: where does today's operation lose time, and which of the three decisions can reduce it? Three problems stand out. This section shows only the evidence that supports them; the complete profiles stay in the code package. Table~\ref{tab:problems} links each problem to its evidence and to the decision it motivates.
+
+\begin{figure*}[!t]
+\centering
+\figartw{as1_summary_profiles}
+\caption{(a) Lines per order, (b) orders by hour of day and (c) ABC Pareto curve of units shipped. One-line orders, an afternoon peak and a few fast SKUs dominate the workload.}
+\label{fig:profile}
+\end{figure*}
+
+\textbf{Problem 1: a few fast items drive the work and run short.} The ABC ranking by units shipped uses the 26,477 SKUs with at least one standard (non-bulk) sale in 2004, a list taken from the sales file and not the 22,652 cleaned items of the item master. It shows that 4,880 SKUs (18.4\%, class A) make 80\% of the volume, 6,415 SKUs (class B) the next 15\%, and 15,182 SKUs (57.3\%, class C) only 5\% (Fig.~\ref{fig:profile}c). Ranking by picks gives the same message: the top 3,500 of the 9,475 picked SKUs (36.9\%) cover 80\% of the picks. Fast items are also compact (Fig.~\ref{fig:ap57}, left): class A has 81.1\% of the units but only 53.6\% of the cube moved (0.07~ft$^3$ per unit), while class C is six times bulkier (0.44~ft$^3$ per unit, 4.5\% of units but 19.9\% of the cube). Popularity and space need are therefore different rankings, and both enter the storage model (frequency $f_i$ and locations $S_i$). The fast items are also the ones that fall short: the fill rate is 93.3\% and 7.2\% of the lines are short-shipped. The stockout rate is 4.3\% in class A, 7.7\% in class B and 19.7\% in class C, but class A still holds 37\% of all short lines because it has by far the most lines (Table~\ref{tab:stockouts}). We do not know why the rates differ: we hypothesise that class A shelves run empty before they are refilled (tested in Section~\ref{sec:layout}) and that class C demand is hard to forecast. The consequence is that fast items should sit close to the packing area (Section~\ref{sec:storage}) and that those whose single location empties quickly may need extra active locations (Section~\ref{sec:layout}).
+
+\inputart{report_stockouts}
+
+\textbf{Problem 2: most orders are small, so picking tours decide the walking.} Of the 883,910 orders, 61.7\% have a single line and the average is 2.40 lines (Fig.~\ref{fig:profile}a). Picking one order at a time would send a picker through the warehouse for one or two lines, which is why the operation picks in batches: one tour collects the lines of several orders. The labour of picking is then fixed by the number of lines, and what we can still change is the length of each tour. This motivates the route study in Section~\ref{sec:picking}.
+
+\textbf{Problem 3: the work is concentrated in time and in place.} Order arrivals are concentrated: 47.4\% of the order activity falls between 15:00 and 17:00, with a peak at 16:00 (Fig.~\ref{fig:profile}b). Staffing is driven by this peak, and any refill trip that happens in the same hours competes with picking for the aisles. In space, 100 of the 140 bays have picks. Zone B is the busiest, with up to about 2,500 picks in one bay; zone C is quieter and zone R has no picks because it is reserve (Fig.~\ref{fig:heatmap}). Reserve matters for refills and for feasibility: case reserve holds 59.5\% of the reserve units in 45,767 locations and pallet reserve the other 40.5\% in 3,263 locations. Zones B and R are case reserve, zones F and W are nearly all pallet reserve, and zone C has no reserve; 35.2\% of the cartons come from reserve (Fig.~\ref{fig:ap57}, right). The consequence is that refills should be scheduled outside the afternoon peak (Section~\ref{sec:layout}), and that a design that gathers the fast items in a few aisles must be checked for congestion (Section~\ref{sec:eval}), because traffic is better spread than concentrated.
+
+\begin{figure*}[!t]
+\centering
+\figartx{ap5_popularity_vs_cube}{0.33\textwidth}\hfill
+\figartx{ap7_handling_unit_reserve}{0.65\textwidth}
+\caption{Left: share of units shipped and of cube moved by ABC class. Right: reserve units by handling type and handling mix by zone. Pallet and case reserve are different storage types.}
+\label{fig:ap57}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\figartw{ap1_heatmap}
+\caption{Picks per bay on the warehouse map (zones B, C, F and R). Picking is concentrated in zone B; zone R is reserve with no picks.}
+\label{fig:heatmap}
+\end{figure*}
+
+\textbf{Indicators not used.} The median order lead time (322 days) and the units and pick hits per hour are computed in the code package but not used here: sales and picking cover different years, so the lead time is only the calendar gap between the two files, and the picking records have no shift data, so the productivity values are totals over all pickers and cannot be read as targets.
+
+\begin{table}[!t]
+\caption{Each problem, its evidence and the decision it motivates.}
+\label{tab:problems}
+\centering
+\footnotesize
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.18\columnwidth}>{\raggedright\arraybackslash}p{0.43\columnwidth}>{\raggedright\arraybackslash}p{0.27\columnwidth}@{}}
+\toprule
+Problem & Evidence & Decision \\
+\midrule
+Fast items drive the work and run short & 3,500 SKUs give 80\% of the picks; class A is compact; stockouts: 4.3\% (A), 19.7\% (C) & Storage assignment (Sec.~\ref{sec:storage}); extra active locations (Sec.~\ref{sec:layout}) \\
+Small orders make tours decide walking & 61.7\% of orders have one line (2.40 lines on average) & Picking route (Sec.~\ref{sec:picking}) \\
+Work is concentrated in time and place & 47.4\% of orders from 15:00 to 17:00; zone B busiest; 35.2\% of cartons from reserve & Refills outside the peak; congestion check (Sec.~\ref{sec:layout}, \ref{sec:eval}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Storage assignment (WH-AS2)}\label{sec:storage}
+\textbf{Idea.} Fast SKUs should sit close to the packing area. We rank the SKUs that matter and give them the closest locations, in proportion to the space they need.
+
+\textbf{Scope and weights.} In zones B and C, 9,475 SKUs had at least one pick. The top 3,500 (36.9\% of them) cover 80\% of the 93,094 picks from active locations (of the 93,257 lines of zones B and C), so we model these. The weight $f_i$ is the number of pick lines of SKU $i$ in the 30 days; every SKU gets the same handling cost $c_i=1$ because we have no cost data.
+
+\textbf{Space.} The number of locations $S_i$ of a SKU is its stock target (the \texttt{Max} of the min/max file) divided by the capacity of one location, rounded up. The data do not give the location size, so we estimate it as the 75th percentile of \texttt{Max}: 240 units. Three SKUs had \texttt{Max} values in the millions with only 10 to 28 picks, which are data errors, so we cap \texttt{Max} at its 99th percentile (2,200 units, 34 SKUs). Twelve SKUs without a \texttt{Max} get the median. The plan then needs 5,435 locations of the 14,575 available, and one SKU needs up to 10.
+
+\textbf{Model.} Let $x_{ij}=1$ if SKU $i$ is assigned to location $j$ and $d_j$ be its distance to the packing area. We minimise $\sum_{i,j} (f_i c_i / S_i)\, d_j\, x_{ij}$ so that SKU $i$ gets exactly $S_i$ locations and each location holds at most one SKU. The cost splits into an item part $r_i=f_i c_i/S_i$ and a location part $d_j$, so the optimum is found by sorting: the SKU with the highest $r_i$ gets the closest locations, and so on. No solver is needed, and a new SKU is placed by computing its $r_i$.
+
+\begin{figure*}[!t]
+\centering
+\figartw{as2_layout_comparison}
+\caption{Priority of the SKU in each location of zones B and C, today (left) and in the proposed assignment (right). High-priority SKUs move close to the packing area on the left.}
+\label{fig:as2layout}
+\end{figure*}
+
+\textbf{Results.} The model travel cost, which counts every pick line as a separate one-way trip from the packing area, falls from 4.46 to 2.73 million picks$\times$m ($-38.9\%$; Fig.~\ref{fig:as2layout}). This is the value of the objective, not a real saving: a picker collects many lines in one tour, and Section~\ref{sec:eval} shows that the real saving is much smaller. Table~\ref{tab:as2-checks} gives four checks. Capacity is met for every SKU, 3,474 of 3,488 SKUs with dimensions (99.6\%) fit the 30-inch shelf depth (the others need pallet positions), and no SKU needs more than one refill per day. The fastest SKUs have at least 10.3 days of stock, and a few of them are the same SKUs that Section~\ref{sec:layout} gives more locations.
+
+\inputart{report_as2_checks}
+
+\section{Layout design (WH-AS3)}\label{sec:layout}
+\textbf{Problem.} Today every SKU has one active location, but 838 SKUs (24\%) need more than one to hold their stock. Together they need 1,935 extra locations, they cause 36.3\% of the picks and 63.4\% of the units picked, and their single location empties quickly, so staff must refill it from reserve again and again. This matches the stockouts of the fast class A. The question is whether to give these SKUs more active locations.
+
+\textbf{Space and handling.} A bay is 42~in wide and 30~in deep (0.81~m$^2$) and holds on average eight locations, so one location needs 0.10~m$^2$ and the 1,935 extra locations need 197~m$^2$ (13\% of the 1,487~m$^2$ of all active locations). The extra locations are existing locations that change owner inside the same aisles and bays, so aisles, equipment and access do not change. They come from the 11,075 locations held by SKUs outside the top 3,500. Picking and packing must stay close (adjacency rating A, every pick ends there), picking and reserve should stay close (E, refills), and reserve and packing matter least (I). Because no area moves, all ratings are kept.
+
+\begin{figure}[!htb]
+\centering
+\figart{as3_refill_trips_curve}
+\caption{Refill trips in 30 days against the number of extra locations. Savings fall quickly after the first locations.}
+\label{fig:curve}
+\end{figure}
+
+\textbf{Model.} The refill trips of SKU $i$ in 30 days are $R_i=u_i/C_i$, with $u_i$ the units picked and $C_i$ the units that its active locations hold: one location of 240 units today, and its capped stock target with the extra locations. A refill brings the location back to full and one trip refills one SKU. Today the 838 SKUs need 881 trips in 30 days (29 per day). We give the extra locations first to the SKUs where they save the most trips; Table~\ref{tab:layout-options} and Fig.~\ref{fig:curve} show that each location saves less than the one before.
+
+\textbf{Targeted option.} Half of the extra locations (968, 99~m$^2$) already give 92\% of the saving and cut the trips from 881 to 346 (11.5 per day, $-61\%$), which is 535 fewer trips and about 45 hours at five minutes per trip. All 1,935 locations only reach 301 trips and need twice the space, so we choose the targeted option. The alternative of keeping one location per SKU and refilling more often needs no moves, but it keeps 881 trips and the fast SKUs keep running empty; it is a fallback if the space cannot be given.
+
+\begin{figure*}[!t]
+\centering
+\figartw{as3_layout_current_vs_proposed}
+\caption{Active locations used by the fast SKUs per aisle, today (left) and in the targeted proposal (right), on the same scale. The star is the packing area. Aisles, bays and packing area stay fixed; only the owner of some locations changes.}
+\label{fig:as3layout}
+\end{figure*}
+
+\textbf{Feasibility.} The new locations must come from SKUs that give theirs up. There are 5,118 SKUs in zones B and C with no picks in 30 days. The 968 with the least stock hold no units at all, so moving them costs nothing; moving 1,935 would send 2,362 units (about 198 cases) to reserve, small against the 45,767 case-reserve locations. Only 4\% of them already have stock in reserve, so if one is ordered it must be picked from reserve, as already happens for 35.2\% of the cartons. Management must check the reserve space (zone C has none), aisle clearance at the busiest locations and shelf load.
+
+\textbf{Flows and interfaces.} The flows are reserve to active location (refill, 346 trips in 30 days instead of 881), active location to packing (every pick line) and back-flow of the emptied SKUs to reserve (198 cases in the 100\% option, none in the targeted option). Refill trips and picking tours share the same aisles, so we propose to schedule refills outside the 15:00--17:00 order peak, when 47\% of the orders arrive. The targeted option needs no new equipment, no aisle change and no staging area; the only physical work is relabelling 968 locations. Pallet items (zones F and W) are outside the scope of zones B and C and are not affected.
+
+\textbf{Side effect on walking.} The extra locations of a SKU lie in other aisles, so the average walk per pick of the fast SKUs rises from 41.2 to 43.5~m (+5.5\%). That is 17 extra hours of walking in 30 days against 45 hours of refill saved, a net gain of about 28 hours. This simple measure uses only the distance to the packing area; with real batch routes the net gain is 16 hours (Section~\ref{sec:eval}), so we use those values.
+
+\inputart{report_layout_options}
+
+\section{Order picking (WH-AS4)}\label{sec:picking}
+\textbf{Today's process.} Orders are released in waves, and each wave is split into batches. A typical batch has 13 orders, 31 lines and 19 aisles, and only 9.2\% of batches visit a single aisle. We cannot see the real path of the pickers, so we use two baselines: A, the lines in the order of the data (order by order), and B, one pass sorted by location code. B is the main baseline, so that our gains do not come from a weak baseline.
+
+\begin{figure}[!htb]
+\centering
+\figart{as4_route_example}
+\caption{The same batch picked with rule B (left) and rule E (right). Rule E keeps the same stops and changes only their order, so there are fewer long returns.}
+\label{fig:route}
+\end{figure}
+
+\textbf{Methods.} Every method visits the same aisles of a batch and starts and ends at the packing area: A and B as above, C nearest neighbour (always go to the closest aisle not yet visited), D nearest neighbour improved with 2-opt (reverse parts of the route while it gets shorter), and E rule B improved with 2-opt. S-shape or largest-gap routes need the inside of each aisle, which our map (one point per aisle) does not have. A hand check of one five-line batch gives 238 squares $\times$ 1.07~m $=$ 253.9~m, the same as the code, and in a batch of eight aisles method D equals the best possible route (247.5~m against 322.2~m in data order).
+
+\textbf{Results.} Table~\ref{tab:routing} gives the totals for all 2,800 batches. Method A is 2.6 times longer than B, but the check shows it is not a real route: it visits each aisle 1.21 times on average because every order starts again from the nearest aisles, and in batches with 31 or more aisles it walks 1,812~m against 436~m for B. Method C alone is worse than B, so going to the closest aisle is not enough. Method E is the shortest, 8.8\% below B, and no batch gets longer. It is shorter than B in 51.9\% of the batches (15.4\% shorter on average in those), and for the 998 batches with at most ten aisles it is on average 0.01\% above the best possible route (B is 2.34\% above). An example batch (20 lines, 14 aisles) is 16.5\% shorter with E (Fig.~\ref{fig:route}).
+
+\textbf{Labour time.} Walking is 35\% of the labour time in B (282 of 800~h), and picking (518~h) does not depend on the route, so E saves 8.8\% of the walking but only 2.8\% of the total labour time of S0 (25 of 873.9~h, refill included; 3.1\% of the 800~h of walking and picking alone): 25 hours in 22 days, or 0.2 pickers (5.7 to 5.5; 5.2 to 5.0 for walking and picking only). If pickers really walked order by order (A), B would already save 467~h, which the data cannot confirm; Section~\ref{sec:eval} tests this. All 2,800 routes of E are feasible and cover all 93,257 lines; the load on the cart does not change. We did not measure crowding or the path inside aisles.
+
+\inputart{report_routing_methods}
+
+\section{Integrated evaluation (WH-AS5)}\label{sec:eval}
+\textbf{Scenarios.} Each decision has two options: storage (today's positions or the Section~\ref{sec:storage} assignment), layout (one active location per SKU or the 968 extra locations of the targeted option) and picking (rule B or E). The eight combinations are S0 (no change) to S7 (all three). The full layout of 1,935 locations appears only in the sensitivity analysis. All scenarios use the same 93,257 lines, 2,800 batches, 22 days and assumptions (Table~\ref{tab:assumptions}), so differences come only from the decisions. Every combination is feasible (Table~\ref{tab:as5-scenarios}).
+
+\textbf{Displaced SKUs.} The new storage and the extra locations take locations that other SKUs use today. SKUs outside the 3,500 with no picks go to reserve; the picked ones need a free location of their own (two SKUs never share one). We test a best case, in which the busiest SKUs take the nearest free location, and a worst case, in which each gets a random free location (five draws, seeds 0 to 4). The new storage alone displaces 683 picked SKUs (1,927 free locations), and with the layout 967 (1,635 free). The new storage re-slots 3,498 of the 3,500 SKUs.
+
+\inputart{as5_table_summary}
+
+\begin{figure}[!htb]
+\centering
+\figart{as5_labour_by_scenario}
+\caption{Labour time (h) over 22 picking days for S0 to S7, split into walking, picking and refill (best case). The diamond is the worst case. Picking time (518~h) is fixed.}
+\label{fig:scenarios}
+\end{figure}
+
+\textbf{Results.} Table~\ref{tab:as5-performance} and Fig.~\ref{fig:scenarios} give the labour time. S0 needs 873.9~h (5.7 pickers). S7 needs 783 to 792~h ($-10.4\%$ to $-9.4\%$) and 5.1 pickers. S3 (layout and picking, with today's storage) needs 807.9~h ($-7.6\%$), only 16 to 24~h behind S7. Picking alone (S1) saves 2.8\% and the layout alone (S2) 1.8\%: it cuts refill time by 45~h but adds 105~km of walking with rule B. The new storage alone (S4) is worse than today (+2.3\% to +3.2\%): rule B sorts by location code, which no longer follows the new positions, so walking rises by 7\% to 10\%, and the storage change does not reduce refill trips. With rule E (S5) the storage helps ($-5.5\%$ to $-4.6\%$). Where the displaced SKUs go matters little: the worst case adds 26 to 32~km of walking (about 7 to 9 hours).
+
+\inputart{as5_table2_performance}
+
+\inputart{as5_table5_sensitivity}
+
+\textbf{Effect of each decision.} Table~\ref{tab:as5-effects} shows the change in labour time when one decision is switched on, over the four settings of the other two. Picking always helps, and more with the new storage (25 to 69~h). The layout always saves 44.6~h of refill time, but costs 2 to 29~h of walking, so its net gain is 16 to 43~h. The storage depends most on the context: from $+28$~h to $-16$~h in the worst case.
+
+\inputart{as5_table3_effects}
+
+\textbf{Interaction.} If the decisions were independent, the combined effect would equal the sum of the three isolated effects. Table~\ref{tab:as5-interaction} shows that the isolated effects add up to only $-20.6$~h (best case) or $-12.2$~h (worst case), but the three changes together save 90.5 or 81.7~h. The interaction is about $-70$~h: each decision removes a problem that limits another, so the decisions must be judged as a package.
+
+\inputart{as5_table4_interaction}
+
+\textbf{Sensitivity.} Table~\ref{tab:as5-sensitivity} changes the walking speed, the pick time and the refill time one at a time. S7 is the best scenario in all 18 cases (parameter cases in best and worst relocation) and saves 7.2\% to 20.5\%; it saves less when picking is slow or refill trips are short, and more when refill trips are long. S4 is above today in every parameter case. The layout alone pays off only if a refill trip takes more than 3.3 minutes; with rule E or with the new storage the break-even falls to 0.2 to 0.4 minutes, so the layout should not go alone. The full layout of 1,935 locations adds at most 1.1 points. If pickers follow the data order today (rule A as baseline, S0 needs 1,341 h), picking alone saves 37\% and S7 41\%, so the routing rule becomes the most valuable part.
+
+\textbf{Reconciliation with earlier sections.} The 38.9\% saving of the storage model counts one trip per pick line (4,463~km of model walking) against the 1,017~km of real batch routes, and the layout study measured only the average walk of the fast SKUs (break-even 1.9~min, net gain 28~h). The values of this section use the real batch routes of all lines (3.3~min, 16~h) and are the ones to use.
+
+\textbf{Congestion.} The new storage puts the fast SKUs together: the busiest aisle receives 115 lines per day today, 191 with the new layout and 232 to 236 with the new storage, and the 10 busiest aisles carry 36\% of the lines instead of 24\%. At 20~s per line the busiest aisle needs 1.3~h of picking per day (18\% of a work day), so pickers will sometimes wait but no aisle is blocked. This conflicts with the traffic balancing suggested by the profile, and the walking model has no queues, so the real gain of S4 to S7 may be smaller.
+
+\textbf{Recommendation.} Ranked by worst-case labour time, S7 is first (792~h, $-9.4\%$, 5.1 pickers). S3 is second with 807.9~h ($-7.6\%$), keeps 73\% to 81\% of the S7 saving and has no uncertainty, because it re-slots nothing and displaces no SKU. We recommend S7 in two phases. Phase 1 adds the 968 locations (99~m$^2$) for the fastest SKUs and changes the picking rule to E (S3): refill trips fall from 881 to 346 in 30 days. Phase 2 re-slots zones B and C (S7) only if Phase 1 works as expected: it adds 16 to 24 hours (1.8 to 2.8 points) but changes 3,498 SKUs, moves 683 to 967 other picked SKUs and raises congestion. The storage change should never go alone or with rule B.
+
+\textbf{Cost and monitoring.} We have no cost data, so we do not claim a money saving. Labour hours convert to cost by multiplying by a wage rate: the saving of 82 to 91~h in 22 days is about 0.6 of a picker (5.7 to 5.1), which is a reduction in workload and not necessarily a cut in headcount, and it must be larger than the one-off cost of relabelling 968 locations and retraining. After the change, management should follow four indicators: refill trips per day (target below 12), lines per day in the busiest aisle (alarm above 200), labour hours per 1,000 lines (today 9.4 h; the model predicts 8.4 to 8.5 h) and the class A stockout rate (today 4.3\%). If these do not move as predicted, Phase 2 should not start. For Phase 2 (S7 instead of S3), which saves 16 to 24~h per 22 picking days but needs 4,465 SKU moves (3,498 re-slotted and 967 displaced in the worst case), we compute a break-even instead of a return on investment: if the demand repeats for 12 such periods, Phase 2 pays back only if one SKU move takes less than 2.5 to 3.9 minutes, and within a single period only below 0.2 to 0.3 minutes. The real time per move must be measured before Phase 2 starts.
+
+\textbf{Limitations.} The analysis uses 30 days of demand, an assumed walking speed and assumed times for picking and refill, which should be measured before the decision (the saving ranges from 7\% to 20\% across them). Location sizes (240 units) are estimates, the map has one point per aisle, and the stock of the displaced SKUs and the reserve space were not checked. The baseline B is built by us; the real baseline is unknown. We did not measure stockouts: fewer refill trips and more active locations should help class A, but this is a hypothesis. The model has further limits that we did not test: the 2,800 batches are fixed as in the logs, so batching rules could reduce distance and spread the aisle traffic; the re-slotting uses one 22-day window, so a periodic re-slotting policy (for example every quarter) should be tested before moving 3,498 SKUs; refill trips are single trips of an assumed time, with no batched refill routes; and queues at the busiest aisle during the 15:00--17:00 peak need a simulation or an aisle capacity penalty to show how much of the saving remains.
+
+\section{Conclusion}
+Changing storage, layout and picking together reduces labour time by 9.4\% to 10.4\% (from 873.9 to 783--792~h in 22 days) and the pickers from 5.7 to 5.1; the result holds in all 18 sensitivity cases. Layout and picking give most of the gain (7.6\%), the new storage alone is harmful, and the three decisions reinforce each other by about 70~h. The earlier model savings (38.9\% travel cost, 30~h of layout gain) overstate the real effect. We recommend the layout and the new picking rule first, and the re-slotting later if the congestion is acceptable. Before implementation the company should measure the real refill and picking times, the path of the pickers, and the queues in the busiest aisles.
+
+\bibliographystyle{IEEEtran}
+\IfFileExists{references.bib}{\bibliography{references}}{\bibliography{report/references}}
+
+\end{document}

@@ -1,0 +1,12 @@
+Parameter,Value,Basis
+Picking period (zones B and C),"25 Feb to 25 Mar 2005, 22 picking days",data
+Pick lines and batches,"93,257 lines in 2,800 batches",data
+Walking speed,1.0 m/s,assumption
+"Time to find, pick and scan one line",20 s,assumption
+Time per refill trip,5 min,assumption
+Productive time per picker,7 h per day,assumption
+Distance,"rectilinear on the map grid, 1 square = 1.07 m, one point per aisle",assumption
+Packing area (start and end of tours),"grid point (row 7, column 10)",assumption
+Capacity of one active location,240 units (75th percentile of Max),estimate
+Cap on Max,"2,200 units (99th percentile)",data rule
+Random draws for relocated SKUs,seeds 0 to 4 (worst case),setting

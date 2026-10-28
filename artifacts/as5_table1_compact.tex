@@ -1,0 +1,19 @@
+\begin{table*}[t]
+\small
+\caption{The eight scenarios: decisions switched on (yes/no) and their resources. All are feasible.}
+\label{tab:as5-scenarios}
+\fitwidth{\textwidth}{\begin{tabular}{llcccrrrr}
+\toprule
+Scenario & Name & Layout & Storage & Picking & \shortstack{Extra space\\(m2)} & \shortstack{SKUs re-\\slotted\\(count)} & \shortstack{Picked SKUs\\displaced\\(count)} & \shortstack{Busiest aisle\\(lines/day)} \\
+\midrule
+S0 & Current warehouse & no & no & no & 0 & 0 & 0 & 115 \\
+S1 & Picking change only & no & no & yes & 0 & 0 & 0 & 115 \\
+S2 & Layout change only & yes & no & no & 99 & 0 & 0 & 191 \\
+S3 & New layout + new picking & yes & no & yes & 99 & 0 & 0 & 191 \\
+S4 & Storage change only & no & yes & no & 0 & 3,498 & 683 & 236 \\
+S5 & New storage + new picking & no & yes & yes & 0 & 3,498 & 683 & 236 \\
+S6 & New layout + new storage & yes & yes & no & 99 & 3,498 & 967 & 232 \\
+S7 & All three changes & yes & yes & yes & 99 & 3,498 & 967 & 232 \\
+\bottomrule
+\end{tabular}}
+\end{table*}

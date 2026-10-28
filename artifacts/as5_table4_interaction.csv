@@ -1,0 +1,7 @@
+Effect (change vs S0),Best case (h),Worst case (h)
+Picking only (S1),-24.8,-24.8
+Layout only (S2),-15.6,-15.6
+Storage only (S4),19.7,28.1
+Sum of the three isolated effects,-20.6,-12.2
+Combined effect (S7),-90.5,-81.7
+Interaction (combined - sum),-69.9,-69.5

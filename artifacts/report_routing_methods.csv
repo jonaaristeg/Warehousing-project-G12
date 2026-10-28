@@ -1,0 +1,6 @@
+Method,Distance (km),Change vs B (%),Batches shorter than B (%),Labour time (h),Pickers (count)
+A. Orders one by one (data order),"2,699",+165.5,0.0,"1,268",8.2
+B. One pass sorted by location code,"1,017",+0.0,0.0,800,5.2
+C. Nearest neighbour,"1,046",+2.8,21.6,--,--
+D. Nearest neighbour + 2-opt,938,-7.8,50.6,--,--
+E. B + 2-opt,927,-8.8,51.9,776,5.0

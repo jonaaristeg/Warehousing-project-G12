@@ -1,0 +1,9 @@
+Scenario,Name,Layout,Storage,Picking rule,Feasibility,Extra space (m2),SKUs re-slotted (count),Picked SKUs displaced (count),Refill trips (count),Labour time (h),Change vs S0 (h),Change vs S0 (%),"Pickers, worst case (count)",Busiest aisle (lines/day)
+S0,Current warehouse,no,no,B,Baseline,0,0,0,881,874,+0,+0.0,5.7,115
+S1,Picking change only,no,no,E,Feasible,0,0,0,881,849,-25,-2.8,5.5,115
+S2,Layout change only,yes,no,B,"Feasible, more walking with B",99,0,0,346,858,-16,-1.8,5.6,191
+S3,New layout + new picking,yes,no,E,Feasible,99,0,0,346,808,-66,-7.6,5.2,191
+S4,Storage change only,no,yes,B,"Feasible, SKUs must move",0,3498,683,881,894 to 902,+20 to +28,+2.3 to +3.2,5.9,236
+S5,New storage + new picking,no,yes,E,"Feasible, SKUs must move",0,3498,683,881,826 to 833,-48 to -41,-5.5 to -4.6,5.4,236
+S6,New layout + new storage,yes,yes,B,"Feasible, SKUs must move",99,3498,967,346,852 to 861,-22 to -13,-2.5 to -1.4,5.6,232
+S7,All three changes,yes,yes,E,"Feasible, SKUs must move",99,3498,967,346,783 to 792,-91 to -82,-10.4 to -9.4,5.1,232

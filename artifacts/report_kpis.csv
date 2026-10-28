@@ -1,0 +1,6 @@
+KPI,Value,Unit,Reading
+Median order lead time,322.1,days,not a real lead time (files from different years)
+Order fill rate,93.3,%,93% of the ordered quantity is shipped
+Stockout line rate,7.2,%,about 1 line in 14 is short-shipped
+Units picked per hour,"3,709.4",units/h,"all pickers together, varies from 1 to 21,569"
+Pick hits per hour,806.2,picks/h,"all pickers together, varies from 1 to 3,998"

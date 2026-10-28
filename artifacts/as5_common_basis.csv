@@ -1,0 +1,11 @@
+Item,Value
+Pick lines (zones B and C),"93,257"
+Batches,"2,800"
+Picking days,22
+SKUs in the AS2 scope,"3,500"
+Walking speed (m/s),1.0
+Time per pick line (s),20
+Time per refill trip (min),5
+Productive hours per picker per day,7
+Extra locations in the proposed layout,968
+Random draws for the worst case (seeds),0 to 4

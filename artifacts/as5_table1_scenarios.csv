@@ -1,0 +1,9 @@
+Scenario,Name,Layout,Storage,Picking,Extra space (m²),SKUs re-slotted (count),Picked SKUs displaced (count),Busiest aisle (lines/day),Status
+S0,Current warehouse,Baseline,Baseline,Baseline,0,0,0,115,Observed baseline
+S1,Picking change only,Baseline,Baseline,Proposed,0,0,0,115,Feasible
+S2,Layout change only,Proposed,Baseline,Baseline,99,0,0,191,Feasible: rule B walks 10.3% more than S0
+S3,New layout + new picking,Proposed,Baseline,Proposed,99,0,0,191,Feasible
+S4,Storage change only,Baseline,Proposed,Baseline,0,"3,498",683,236,Feasible: rule B walks 9.9% more than S0; 683 picked SKUs must move
+S5,New storage + new picking,Baseline,Proposed,Proposed,0,"3,498",683,236,Feasible: 683 picked SKUs must move
+S6,New layout + new storage,Proposed,Proposed,Baseline,99,"3,498",967,232,Feasible: rule B walks 11.3% more than S0; 967 picked SKUs must move
+S7,All three changes,Proposed,Proposed,Proposed,99,"3,498",967,232,Feasible: 967 picked SKUs must move

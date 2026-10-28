@@ -1,0 +1,4 @@
+option,extra_locations,extra_area_m2,trips_30d,trips_per_day,trips_saved,change_%,hours_saved_3min,hours_saved_5min,hours_saved_10min
+Current,0,0,881,29.4,0,0%,0,0,0
+Targeted (50%),968,99,346,11.5,535,-61%,27,45,89
+Full (100%),1935,197,301,10.0,581,-66%,29,48,97
